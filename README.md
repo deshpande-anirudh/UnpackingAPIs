@@ -1,8 +1,6 @@
 ## API Design
 
----
-
-### Why is API design important?
+## Why is API design important?
 A well-designed API ensures that the systems can integrate well, and also ensures security (rate-limiting, TLS termination, and scalability. 
 
 Poor API design:
@@ -18,17 +16,17 @@ Good API design:
 
 ----
 
-### Architectural patterns/styles
+## Architectural patterns/styles
 
 - A set of *patterns* that define how components of a system interact, to solve the re-occurring problems.
 
 ### Key Characteristics:
-1. **Structure:** Defines the components, their roles, and relationships.
+1. **Components:** Defines the components, their roles, and relationships.
 2. **Communication:** Specifies how components interact and share information.
 3. **Constraints:** Sets rules or best practices for organizing systems (e.g., statelessness in REST).
 4. **Behavior:** Describes how components handle operations, data flow, and scalability.
 
-#### Common Architectural patterns:
+### Common Architectural patterns:
 ##### 1. **Monolithic Architecture:**  
    - A single, tightly coupled application.  
    - Example: Legacy e-commerce systems.
@@ -58,7 +56,7 @@ Good API design:
    - Divides applications into layers (e.g., presentation, business logic, and data).  
    - Example: Enterprise applications.
 
-#### Common Architectural styles
+### Common Architectural styles
 
 ##### 1. **REST (Representational State Transfer)**  
    - **Purpose:** Resource-oriented web services  
@@ -104,64 +102,10 @@ Good API design:
 
 ----
 
-### REST (Representational State Transfer)
-Provides guidelines for how systems should communicate over the web, typically **using HTTP**. Simple and scalable. 
+## REST (Representational State Transfer)
+Architectural style that provides guidelines for how systems should communicate over the web, typically **using HTTP**. Simple and scalable. 
 
-Certainly! Here's the merged version:
-
-#### Key Characteristics of REST:
-1. **Structure**: Defines the components, their roles, and relationships.
-   - **Client**: Makes requests to the server.
-   - **Server**: Provides resources or data in response to the client's request.
-   - **Resources**: Representations of objects or data that can be interacted with through HTTP methods like GET, POST, PUT, DELETE, etc.
-   - **Representations**: The data format in which a resource is presented (commonly JSON, XML, etc.).
-
-
-2. **Communication**: Specifies how components interact and share information.
-   - RESTful systems rely on a stateless, request-response mechanism. Clients and servers communicate over HTTP where each request is independent of previous ones (stateless). The interaction uses standard HTTP methods to perform operations on resources.
-
-
-3. **Constraints**: Sets rules or best practices for organizing systems.
-   - **Statelessness**: No client context is stored on the server between requests.
-   - **Uniform Interface**: A consistent, standardized way to access resources.
-   - **Cacheability**: Responses should explicitly state whether they can be cached to improve efficiency.
-   - **Layered System**: The architecture can be composed of layers to improve scalability and security.
-
-
-4. **Behavior**: Describes how components handle operations, data flow, and scalability.
-   - When a client makes a request, the server processes that request, interacts with the relevant resources, and returns an appropriate representation (data).
-   - The behavior of a RESTful system focuses on handling requests and responses while ensuring scalability to accommodate varying loads efficiently. 
-
-
-#### Key Principles of REST:
-
-##### 1. **Stateless Communication:**  
-   - Each request from a client to a server must contain all the information needed to understand and process the request.  
-   - The server **does not** store any session information between requests.
-
-
-##### 2. **Client-Server Separation:**  
-   - The client and server operate independently.  
-   - The client only knows how to use the API, while the server handles the backend logic.
-
-
-##### 3. **Uniform Interface:**  
-   - RESTful APIs follow consistent patterns for interacting with resources using HTTP methods:
-     - `GET`: Retrieve data (e.g., fetching a product list).
-     - `POST`: Create a resource (e.g., placing an order).
-     - `PUT`/`PATCH`: Update a resource (e.g., modifying user information).
-     - `DELETE`: Remove a resource (e.g., deleting an order).
-
-
-##### 4. **Resource-Based:**  
-   - Everything in a REST API is considered a resource, represented by a unique URL (e.g., `/orders`, `/users`).
-
-
-##### 5. **Stateless Responses:**  
-   - Responses often include representations of resources, typically in formats like JSON or XML.
-
-#### REST Example in E-Commerce:
-
+### REST Example:
 - **GET Request:**  
    Request: `GET /orders?limit=10&page=1`  
    Response: Returns a list of 10 paginated orders.  
@@ -170,6 +114,63 @@ Certainly! Here's the merged version:
    Request: `POST /process-order`  
    Body: `{ "productId": 123, "quantity": 2 }`  
    Response: Acknowledges that the order processing request has been accepted.
+
+### Characteristics:
+#### Components
+- **Client**: Makes requests to the server.
+- **Server**: Provides resources or data in response to the client's request.
+- **Resources**: Representations of objects or data that can be interacted with through HTTP methods like GET, POST, PUT/PATCH, DELETE.
+  - **Resource Representations**: The data format in which a resource is presented (commonly JSON, XML, etc.).
+
+#### **Constraints**
+#####  **Statelessness**: No client context is stored on the server between requests.
+- RESTful systems rely on a *stateless*, request-response mechanism. 
+- Clients and servers communicate over HTTP where each request is independent of previous ones (stateless). 
+- The interaction uses standard HTTP methods to perform operations on resources.
+
+#####  **Uniform Interface**: A consistent, standardized way to access resources.
+- RESTful APIs follow consistent patterns for interacting with resources using HTTP methods:
+  - `GET`: Retrieve data (e.g., fetching a product list).
+  - `POST`: Create a resource (e.g., placing an order).
+  - `PUT`/`PATCH`: Update a resource (e.g., modifying user information).
+  - `DELETE`: Remove a resource (e.g., deleting an order).
+
+#####  **Cacheability**: Responses should explicitly state whether they can be cached to improve efficiency.
+**Request**: `GET /products`
+
+The server responds with a list of products and includes a **Cache-Control** header in the response:
+
+**Response**:
+```json
+Cache-Control: public, max-age=3600
+[
+  { "id": 1, "name": "Laptop" },
+  { "id": 2, "name": "Smartphone" }
+]
+```
+The **Cache-Control** header tells the client that the response can be cached for 1 hour (`max-age=3600` seconds).
+This means the client doesn't need to request the same data again for the next hour, improving efficiency by reducing the number of requests to the server.
+
+##### **Layered System**: The architecture can be composed of layers to improve scalability and security.
+
+Imagine an e-commerce platform with multiple layers:
+
+1. **Client Layer**: The front-end user interface, like a web or mobile app, interacts with the server.
+2. **API Gateway Layer**: An intermediary that routes incoming requests from clients to the appropriate backend services. It can also handle authentication, logging, and load balancing.
+3. **Application Layer**: This is where the core business logic resides, such as processing orders, managing inventory, and handling payments.
+4. **Data Layer**: A database or storage system that stores product information, user accounts, and order history.
+
+In this layered system:
+- **Scalability**: Different layers can scale independently. For example, if there’s a spike in traffic, you can scale the API Gateway or application layer without affecting the database layer.
+- **Security**: The API Gateway layer can handle security concerns like authentication (using OAuth or API keys) and protect sensitive data, while the application layer focuses on business logic.
+
+Each layer in the system only communicates with the layer directly below or above it, helping manage complexity and improve both security and scalability.
+
+![](https://plantuml.online/png/NO_D2i8m48JlUOgb9mMjTm-2-8SYMgiliBQB12I9oPRIjpVQDBOUT-URdLaiM5jOFIKf5WOjoq8QL0p9Cjl33fbgRE283Ta4q7MRFzIOfooGfLOzr6-7s1ePU_fdlACZ8Tfuc2vYu1okf4h8wLMHOnXH-aWdiDlSO6QiBgk2tLXqiFVvBE_PQbkZZJRnsNgn2_B4fIBRGDQU-0eYgl5CJbnPDQJ2gL-_0ENaZ5RU7IeUhkSJbDung1SUZ5-r7l46)
+
+##### **Behavior**: Describes how components handle operations, data flow, and scalability.
+- When a client makes a request, the server processes that request, interacts with the relevant resources, and returns an appropriate representation (data).
+- The behavior of a RESTful system focuses on handling requests and responses while ensuring scalability to accommodate varying loads efficiently. 
 
 
 
