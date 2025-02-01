@@ -22,9 +22,7 @@ def main():
     print("Welcome to the coffee shop")
 
     start = datetime.now()
-
     processes = []
-
     for i in range(5):
         process = order_coffee(i+1)
         processes.append(process)
