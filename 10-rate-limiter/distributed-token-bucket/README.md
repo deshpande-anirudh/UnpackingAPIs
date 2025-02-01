@@ -79,6 +79,45 @@ Rate limit exceeded
 | `hset(self.key, mapping={"tokens": new_tokens, "last_refill": now})` | Sets multiple fields in a hash at the specified key. |
 | `execute()` | Executes all commands in the transaction block atomically. |
 
+### pipeline()
+`self.redis.pipeline()`  creates a **pipeline object**, which is a mechanism to batch multiple Redis commands and send them to the server in one network call. This has several advantages:  
+
+1. **Atomic Execution:**  
+   By using commands like `multi()` and `execute()`, Redis can treat the batched operations as a single transaction, ensuring that either all commands are executed or none are.  
+
+2. **Performance Improvement:**  
+   Instead of sending multiple commands one by one, pipelines reduce the overhead of multiple network round trips by executing all commands together.  
+
+3. **Efficient Error Handling:**  
+   With commands like `watch()`, the pipeline allows for detecting concurrent changes to specific keys and retrying the transaction if necessary.  
+
+### Key Operations in the Code  
+1. **`pipe.watch(self.key)`**:  
+   Watches a specific key (`self.key`) for changes, ensuring no other clients modify the key during the transaction.  
+
+2. **`pipe.hgetall(self.key)`**:  
+   Retrieves all fields and values of a hash stored at the key.  
+
+3. **`pipe.multi()`**:  
+   Marks the beginning of a transaction block.  
+
+4. **`pipe.hset()` and `pipe.execute()`**:  
+   Batches commands to set hash values (`hset`) and executes the transaction (`execute`) atomically.  
+
+Pipelines are essential for distributed rate limiting to handle concurrency and maintain accuracy in token consumption and refill processes.
+
+### watch(self.key)
+- If concurrent modification, this results in watch error. 
+```python
+with self.redis.pipeline() as pipe:
+    while True:
+        try:
+            pipe.watch(self.key)
+            # ....
+        except redis.WatchError:
+            continue
+```
+
 ## How It Works
 1. **Token Storage:** Redis stores the token count and last refill timestamp.
 2. **Token Consumption:** Tokens are deducted only if enough tokens are available.
