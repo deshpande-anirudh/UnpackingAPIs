@@ -168,7 +168,7 @@ Each layer in the system only communicates with the layer directly below or abov
 
 ![](https://plantuml.online/png/NO_D2i8m48JlUOgb9mMjTm-2-8SYMgiliBQB12I9oPRIjpVQDBOUT-URdLaiM5jOFIKf5WOjoq8QL0p9Cjl33fbgRE283Ta4q7MRFzIOfooGfLOzr6-7s1ePU_fdlACZ8Tfuc2vYu1okf4h8wLMHOnXH-aWdiDlSO6QiBgk2tLXqiFVvBE_PQbkZZJRnsNgn2_B4fIBRGDQU-0eYgl5CJbnPDQJ2gL-_0ENaZ5RU7IeUhkSJbDung1SUZ5-r7l46)
 
-##### **Behavior**: Describes how components handle operations, data flow, and scalability.
+#### **Behavior**: Describes how components handle operations, data flow, and scalability.
 - When a client makes a request, the server processes that request, interacts with the relevant resources, and returns an appropriate representation (data).
 - The behavior of a RESTful system focuses on handling requests and responses while ensuring scalability to accommodate varying loads efficiently. 
 
