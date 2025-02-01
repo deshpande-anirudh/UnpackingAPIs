@@ -87,4 +87,7 @@ Adds tokens to the bucket based on the elapsed time since the last refill.
 - Add logging for better observability.
 - Implement dynamic configuration for `burst_rate` and `replenishment_rate`.
 
+## License
+This project is open-source and available for modification and use.
+
 
