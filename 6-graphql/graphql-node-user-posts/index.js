@@ -52,14 +52,22 @@ const RootQuery = new GraphQLObjectType({
       type: UserType,
       args: { id: { type: GraphQLID } },
       resolve(parent, args) {
-        return users.find(user => user.id === args.id);
+        const user = users.find(user => user.id === args.id);
+        if (!user) {
+          throw new Error(`User with ID ${args.id} not found`);
+        }
+        return user;
       },
     },
     post: {
       type: PostType,
       args: { id: { type: GraphQLID } },
       resolve(parent, args) {
-        return posts.find(post => post.id === args.id);
+        const post = posts.find(post => post.id === args.id);
+        if (!post) {
+          throw new Error(`Post with ID ${args.id} not found`);
+        }
+        return post;
       },
     },
   },
@@ -75,6 +83,10 @@ const Mutation = new GraphQLObjectType({
         name: { type: GraphQLString },
       },
       resolve(parent, args) {
+        if (!args.name) {
+          throw new Error('Name is required to add a user');
+        }
+
         const newUser = { id: String(users.length + 1), name: args.name };
         users.push(newUser);
         return newUser;
@@ -87,12 +99,17 @@ const Mutation = new GraphQLObjectType({
         name: { type: GraphQLString },
       },
       resolve(parent, args) {
-        let user = users.find(user => user.id === args.id);
-        if (user) {
-          user.name = args.name;
-          return user;
+        if (!args.name) {
+          throw new Error('Name is required to update user');
         }
-        return null;
+
+        const user = users.find(user => user.id === args.id);
+        if (!user) {
+          throw new Error(`User with ID ${args.id} not found`);
+        }
+
+        user.name = args.name;
+        return user;
       },
     },
     addPost: {
@@ -102,6 +119,15 @@ const Mutation = new GraphQLObjectType({
         content: { type: GraphQLString },
       },
       resolve(parent, args) {
+        if (!args.content) {
+          throw new Error('Content is required for the post');
+        }
+
+        const user = users.find(user => user.id === args.userId);
+        if (!user) {
+          throw new Error(`User with ID ${args.userId} not found`);
+        }
+
         const newPost = { id: String(posts.length + 1), userId: args.userId, content: args.content };
         posts.push(newPost);
         return newPost;
@@ -125,6 +151,15 @@ app.use(
   graphqlHTTP({
     schema: schema,
     graphiql: true, // Enable the GraphiQL UI for testing
+    customFormatErrorFn(err) {
+      // Format error message for better understanding
+      return {
+        message: err.message,
+        locations: err.locations,
+        stack: err.stack ? err.stack.split('\n') : [],
+        path: err.path,
+      };
+    },
   })
 );
 
