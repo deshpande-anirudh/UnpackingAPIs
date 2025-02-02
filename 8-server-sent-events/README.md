@@ -213,42 +213,6 @@ Sure! Here are some real-world applications where **Server-Sent Events (SSE)** a
 
 ![](https://plantuml.online/png/ZLGzRzim4DtrAmuU2jk8dLr31yTfXpfj4AFeaeMcpX8HYLHvP5B_-nu_94j1MtIpgNllthrxf93EMFXEQ8jUMAUaweLsi3WOKS5Ej49Bj0iG18VTlE9ul8SVU88ZsjTSmaVpcY_Y_29W-O14eaROMVE25Zx0_IlovwEpA3hOAt9MdRnJHgyYJuJDcUw4R12MJrWfkhtRVqs5yNHU-6XDvLapB75RRs_We5uHZhsnZhBK11tgvkW7enKRedGDGbTmC7NDloCWVogAO1PiFh8XKCATqHebSpi3ZXLIR57mDwu85fNmPBn30fagUSXGEtUl27yP4AbB-DQZZcvEGMVUKnk6yNqbc73098zBEFeJIVOHenPA4-TQFkcLB4Pl9h17VseLDLmJoJEEKM9maAInOzTLaO3ZT7iCE4k0OQS4owd6rTz7JGijuHCwsS3Pua_F-FO2GagE2rOp3T9R6o9JYuurEk5OI6AusepEMxPDXkE4VcVh4NL5CmzXMHlHvX5NHLxnbJCVK5uhD2XQryHeE2lEP_PqWXai7L5TplqfvJwXfuXn8HDG79kCjsp3j7OmR2oCWqAZt6sdYC36K1JQE0GJn4Ov9QpNILU8y7_Vm_NwMMyOEaUirsKUqgPCvvsVqBqXQkZpE1GTukoIx_ZVDd7zezb0ox7tDaJHl6rQdaVBomrFM3SRrt3BkkczWoebxWBcd9QPL72NPtt_ItHzYrI6bjUdu0-F0Ayqf64CGihPuZFd8SMXMiJqHc5nWdcEWMRtBUcFromERr4YDxqsK9hFHBjngiCeDI5gBoo_FCWLbRVYf5hbBY6G_FGEVmBVMVZMCN-BDZp9s-cY3xiIPkyrL8ExGLmAQX3PCOTYUtASQSB1mvNl9souSOllRanuXZpDmJ6QPKueSJX3tVL6nr_aXYlDGbJ7KM7I7YtpTK7qX2udV8nwU8sTCIr7la7v0dHXicwuJhy1)
 
-Here’s an updated **PlantUML sequence diagram** that includes **Kafka** as both the **Message Broker** and **Event Stream Distribution**. It also includes **Producer** and **Consumer** roles, along with a note on Kafka’s properties.
-
-```plantuml
-@startuml
-actor User
-participant "Load Balancer" as LB
-participant "SSE Web Server" as SSE
-participant "Kafka (Message Broker & Event Stream Distribution)" as Kafka
-participant "Cache (Redis/CDN)" as Cache
-participant "Producer (e.g., Live Sports Server)" as Producer
-participant "Monitoring and Logging" as Monitor
-
-User -> LB : Connects to the server
-LB -> SSE : Routes connection to SSE Web Server
-SSE -> User : Opens SSE connection for live updates
-SSE -> Kafka : Subscribes to sports updates topic
-Producer -> Kafka : Publishes live sports data (e.g., score updates)
-Kafka -> SSE : Delivers events (live updates) to SSE Web Server
-SSE -> Cache : Fetch frequently accessed data (e.g., current game stats)
-Cache -> SSE : Returns cached data
-SSE -> User : Sends live updates (goal, score)
-Monitor -> SSE : Monitors server health and traffic
-Monitor -> Kafka : Monitors message broker health
-Monitor -> Producer : Monitors data sources
-Monitor -> Cache : Monitors cache hit/miss rates
-
-note over Kafka: **Kafka as Message Broker & Event Stream Distribution**\n- **Message Broker**: Kafka routes events between producers and consumers.\n- **Event Stream Distribution**: Kafka ensures low-latency, high-throughput delivery of live events.\n\nExamples:\n- Producer (Live Sports Server) sends updates (e.g., "Goal scored") to Kafka.\n- SSE Web Server subscribes to Kafka topic and receives updates in real-time.\n\nKafka guarantees durability, scalability, and fault tolerance.
-
-note over LB: Load Balancer distributes traffic to multiple servers
-note over SSE: SSE Web Server handles live updates for users
-note over Cache: Cache stores frequently requested data to improve performance
-note over Monitor: Monitoring tools check system health
-
-@enduml
-```
-
 ### Key points:
 1. **Producer**: Represents the live sports data source (e.g., a server that tracks scores and game events) that **publishes** events to Kafka. 
 2. **Consumer**: The **SSE Web Server** acts as the consumer, subscribing to Kafka topics to receive the live updates.
