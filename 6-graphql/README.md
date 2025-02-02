@@ -1,7 +1,3 @@
-Here's a simple **README** that you can use to introduce GraphQL to someone who is new to it:
-
----
-
 # Introduction to GraphQL
 
 ## What is GraphQL?
