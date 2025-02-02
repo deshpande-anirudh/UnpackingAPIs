@@ -1,4 +1,4 @@
-## API Design
+# API Design
 
 ## Why is API design important?
 A well-designed API ensures that the systems can integrate well, and also ensures security (rate-limiting, TLS termination, and scalability. 
@@ -26,7 +26,7 @@ Good API design:
 3. **Constraints:** Sets rules or best practices for organizing systems (e.g., statelessness in REST).
 4. **Behavior:** Describes how components handle operations, data flow, and scalability.
 
-### Common Architectural patterns:
+## Common Architectural patterns:
 ##### 1. **Monolithic Architecture:**  
    - A single, tightly coupled application.  
    - Example: Legacy e-commerce systems.
@@ -56,7 +56,7 @@ Good API design:
    - Divides applications into layers (e.g., presentation, business logic, and data).  
    - Example: Enterprise applications.
 
-### Common Architectural styles
+## Common Architectural styles
 
 ##### 1. **REST (Representational State Transfer)**  
    - **Purpose:** Resource-oriented web services  
@@ -115,7 +115,35 @@ Architectural style that provides guidelines for how systems should communicate 
    Body: `{ "productId": 123, "quantity": 2 }`  
    Response: Acknowledges that the order processing request has been accepted.
 
-### Characteristics:
+### Resource orientedness
+- The data is represented as resources, identified by Uniform Resource Identifier (URI). e.g. `/users`, `/users/123`
+- API endpoint = HTTP method + URI e.g. `GET /users/123`
+
+### HTTP status codes
+
+| **Status Code** | **Name** | **Example Scenario** | **Example API Response or Scenario** | **Where to Use** |
+|-----------------|----------|----------------------|-----------------------------------------|------------------|
+| **101** | Switching Protocols | Client requests WebSocket connection | **Request:** `Upgrade: websocket`<br>**Response:** `101 Switching Protocols` | Switching protocols, such as upgrading HTTP to WebSockets |
+| **200** | OK | User data retrieval | **Request:** `GET /users/123`<br>**Response:** `{ "id": 123, "name": "Alice" }` | Successful GET requests |
+| **201** | Created | New user registration | **Request:** `POST /users` <br>**Response:** `201 Created`<br>`Location: /users/123` | Successful resource creation |
+| **202** | Accepted | Processing background job | **Request:** `POST /images/process`<br>**Response:** `202 Accepted` | Acknowledging background tasks |
+| **204** | No Content | Delete operation | **Request:** `DELETE /users/123`<br>**Response:** `204 No Content` | Successful operations without response body |
+| **301** | Moved Permanently | Permanent redirection | **Request:** `GET http://example.com`<br>**Response:** `301 Moved Permanently`<br>`Location: https://example.com` | Permanent URL changes |
+| **302** | Found | Temporary redirection | **Request:** `GET /home`<br>**Response:** `302 Found`<br>`Location: /dashboard` | Temporary redirections |
+| **304** | Not Modified | Cached resource unchanged | **Request:** `GET /logo.png` <br>**Response:** `304 Not Modified` | Caching validation using ETag |
+| **400** | Bad Request | Missing required parameters | **Request:** `POST /users` <br>**Response:** `400 Bad Request`<br>`{ "error": "Missing email" }` | Invalid input or query parameters |
+| **401** | Unauthorized | Missing or invalid API key | **Request:** `GET /profile`<br>**Response:** `401 Unauthorized`<br>`{ "error": "Authentication required" }` | Missing authentication |
+| **403** | Forbidden | User lacks access rights | **Request:** `GET /admin`<br>**Response:** `403 Forbidden`<br>`{ "error": "Access denied" }` | Insufficient user permissions |
+| **404** | Not Found | Non-existent endpoint | **Request:** `GET /unknown`<br>**Response:** `404 Not Found`<br>`{ "error": "Resource not found" }` | Invalid URLs or resources |
+| **405** | Method Not Allowed | Invalid HTTP method | **Request:** `POST /users/123`<br>**Response:** `405 Method Not Allowed` | When method doesn't match endpoint |
+| **408** | Request Timeout | Client request took too long | **Response:** `408 Request Timeout` | Long network delays |
+| **429** | Too Many Requests | Exceeded API rate limits | **Response:** `429 Too Many Requests`<br>`{ "error": "Rate limit exceeded" }` | Rate limiting scenarios |
+| **500** | Internal Server Error | Unexpected backend failure | **Response:** `500 Internal Server Error`<br>`{ "error": "Database connection failed" }` | Generic server-side errors |
+| **502** | Bad Gateway | Invalid backend response | **Response:** `502 Bad Gateway`<br>`{ "error": "Invalid backend response" }` | Backend service down |
+| **503** | Service Unavailable | Server overloaded or under maintenance | **Response:** `503 Service Unavailable`<br>`{ "error": "Server maintenance" }` | Temporary unavailability |
+| **504** | Gateway Timeout | Slow backend service | **Response:** `504 Gateway Timeout` | Backend timeouts |
+
+## Characteristics of REST API:
 #### Components
 - **Client**: Makes requests to the server.
 - **Server**: Provides resources or data in response to the client's request.
@@ -171,6 +199,148 @@ Each layer in the system only communicates with the layer directly below or abov
 #### **Behavior**: Describes how components handle operations, data flow, and scalability.
 - When a client makes a request, the server processes that request, interacts with the relevant resources, and returns an appropriate representation (data).
 - The behavior of a RESTful system focuses on handling requests and responses while ensuring scalability to accommodate varying loads efficiently. 
+
+## Best practices
+
+#### 1. Sending error messages
+
+Send meaningful messages back to the client. 
+
+Instead of - 
+```Error: Something went wrong.```
+
+can send - 
+```json
+{
+  "error": {
+    "code": 400,
+    "message": "Invalid request: 'email' field is required.",
+    "details": [
+      {
+        "field": "email",
+        "issue": "The email attribute is required"
+      }
+    ],
+    "requestId": "abc123",
+    "timestamp": "04-21-2024TXX-XX-XXXX"
+  }
+}
+```
+
+#### 2. Naming APIs
+
+| **Guideline**                          | **Description**                                                                                                                                           | **Examples**                                                                                                                                 |
+|-------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| **Use Nouns, Not Verbs**                  | Focus on resource objects rather than actions. HTTP methods already describe the action.                                                                  | ❌ `GET /retrieveAllCharges`, `POST /makeNewPaymentIntent`<br>✅ `GET /charges`, `POST /payment_intents`                                      |
+| **Use Plural Nouns for Collections**      | Plural nouns indicate collections and improve clarity for multiple-item responses.                                                                         | ❌ `GET /charge/123`<br>✅ `GET /charges/123`                                                                                                  |
+| **Use Singular Nouns for Singletons**     | For singleton resources like account details or user-specific settings, singular nouns may be appropriate.                                                | ✅ `GET /account`                                                                                                                             |
+| **Structure URLs Hierarchically**         | Reflect logical resource relationships in the URL hierarchy.                                                                                               | ❌ `GET /retrieveCustomerCharges?customerId=456`<br>✅ `GET /customers/456/charges`, `GET /customers/456/charges/789`                         |
+| **Avoid Deeply Nested Resources**         | Nesting beyond one or two levels can make APIs harder to maintain and query. Flatten where possible.                                                       | ❌ `GET /customers/456/payment_intents/789/charges/321`<br>✅ `GET /payment_intents/789/charges`                                               |
+| **Keep URLs Short and Meaningful**        | Avoid long, overly descriptive URLs while keeping them understandable.                                                                                      | ❌ `GET /getAllCustomerPaymentMethodsFromDatabase`<br>✅ `GET /payment_methods`, `GET /payment_methods/456`                                    |
+| **Maintain Consistency in Naming**        | Keep resource nouns and URL patterns consistent (casing, plurality). Avoid mixing conventions.                                                             | ❌ `GET /chargeHistory`, `GET /PaymentMethods`, `GET /retrieveCustomers`<br>✅ `GET /charges`, `GET /payment_methods`, `GET /customers`       |
+
+
+## Implementing Pagination, Filtering, and Sorting in REST APIs
+
+When dealing with large datasets, fetching all records at once can lead to performance bottlenecks, high memory usage, and slow response times. To optimize API efficiency and enhance user experience, it's essential to implement pagination, filtering, and sorting mechanisms.
+
+## **1. Pagination**
+Pagination divides large datasets into manageable chunks, allowing clients to request a specific subset of records.
+
+### **a. Offset-Based Pagination**
+This approach uses query parameters `limit` and `offset` to fetch data subsets.
+
+- **Example Request:**
+  ```http
+  GET /products?limit=10&offset=20
+  ```
+  - `limit=10`: Return 10 records per request.
+  - `offset=20`: Skip the first 20 records.
+
+**Pros:**
+- Simple and intuitive.
+- Widely supported by databases.
+
+**Cons:**
+- Slower for large datasets due to full table scans.
+- Inefficient for frequently changing data.
+
+### **b. Cursor-Based Pagination**
+This method uses a `cursor` (e.g., an ID or timestamp) to track the current position in the dataset. Clients request the next chunk by sending the cursor from the previous response.
+
+- **Example Request:**
+  ```http
+  GET /products?limit=10&cursor=xyz123
+  ```
+  - `limit=10`: Return 10 records per request.
+  - `cursor=xyz123`: Indicates the position of the last retrieved record.
+
+**Pros:**
+- More efficient for large or real-time datasets.
+- Stable pagination even with dynamic data.
+
+**Cons:**
+- More complex to implement.
+- Requires stable cursor generation and management.
+
+### **c. Page-Based Pagination**
+This approach uses `page` and `size` parameters to load specific pages.
+
+- **Example Request:**
+  ```http
+  GET /products?page=3&size=10
+  ```
+  - `page=3`: Retrieves the third page.
+  - `size=10`: Returns 10 records per page.
+
+**Pros:**
+- Easy to use with UI elements like numbered pages.
+
+**Cons:**
+- Inefficient for large datasets.
+- Page numbers may become inconsistent if data changes.
+
+## **2. Filtering**
+Filtering allows clients to narrow down results based on specific criteria, ensuring only relevant data is returned.
+
+### **Best Practices:**
+- Use query parameters for filtering.
+- Support multiple filters combined using AND conditions.
+
+### **Examples:**
+- Retrieve active users:
+  ```http
+  GET /users?status=active
+  ```
+- Retrieve products in a specific category:
+  ```http
+  GET /products?status=active&category=electronics
+  ```
+- Retrieve orders within a date range:
+  ```http
+  GET /orders?start_date=2024-01-01&end_date=2024-01-31
+  ```
+
+## **3. Sorting**
+Sorting enables clients to define the order of returned results.
+
+### **Best Practices:**
+- Use query parameters for sorting.
+- Provide sensible default sorts (e.g., by creation date or ID).
+
+### **Single-Field Sorting Example:**
+```http
+GET /products?sort=price&order=asc
+```
+- `sort=price`: Sort by price.
+- `order=asc`: Ascending order (lowest to highest).
+
+### **Multi-Field Sorting Example:**
+```http
+GET /products?sort=price,name&order=desc,asc
+```
+- Primary sort by price in descending order.
+- Secondary sort by name in ascending order if prices are equal.
 
 
 
