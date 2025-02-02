@@ -318,4 +318,92 @@ If you don't have Node.js installed, you can download and install it from the of
 
 - Ensure your Node.js version is up-to-date. If you’re running into compatibility issues, check the [Node.js download page](https://nodejs.org/).
 
----
+------------
+
+# User posts queries
+
+To modify your program to handle **users** and **posts** and allow updating data via mutations, we'll add the following:
+
+- **Hardcoded data** for users and posts.
+- A **mutation** to add a new user, update a user's details, and create a post.
+- A **query** to get users and posts.
+
+### Explanation of Changes:
+1. **Hardcoded Data**:
+   - **Users**: An array of user objects, each with an `id` and `name`.
+   - **Posts**: An array of post objects, each with an `id`, `userId`, and `content`.
+
+2. **GraphQL Types**:
+   - **UserType**: Defines the fields of a user (id, name).
+   - **PostType**: Defines the fields of a post (id, userId, content).
+
+3. **RootQuery**:
+   - We added fields to fetch:
+     - All users (`users`).
+     - All posts (`posts`).
+     - A specific user by `id` (`user`).
+     - A specific post by `id` (`post`).
+
+4. **Mutation**:
+   - We added mutations to:
+     - **addUser**: Add a new user to the `users` array.
+     - **updateUser**: Update the name of an existing user based on `id`.
+     - **addPost**: Add a new post for a user.
+
+**Sample Queries**:
+   - **Get all users**:
+     ```graphql
+     {
+       users {
+         id
+         name
+       }
+     }
+     ```
+   - **Get all posts**:
+     ```graphql
+     {
+       posts {
+         id
+         content
+       }
+     }
+     ```
+   - **Get a user by ID**:
+     ```graphql
+     {
+       user(id: "1") {
+         id
+         name
+       }
+     }
+     ```
+
+4. **Sample Mutations**:
+   - **Add a new user**:
+     ```graphql
+     mutation {
+       addUser(name: "Charlie") {
+         id
+         name
+       }
+     }
+     ```
+   - **Update a user**:
+     ```graphql
+     mutation {
+       updateUser(id: "1", name: "Alicia") {
+         id
+         name
+       }
+     }
+     ```
+   - **Add a new post**:
+     ```graphql
+     mutation {
+       addPost(userId: "1", content: "A new post by Alice") {
+         id
+         content
+       }
+     }
+     ```
