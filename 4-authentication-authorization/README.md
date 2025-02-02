@@ -686,3 +686,91 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
+# Encryption at REST
+
+![](https://plantuml.online/png/ZOzDJiCm48NtFiMegqI27g0B9Afa5NNJYWDCdQTWKPpWSIhbzeoJ9YM013jRytw-npQsWLu4mNGSehEkOnzfyznr5sSvkjPlY8NqlnOK7FdCWl5QxDV72WCTs7E3T-Z_X71r5fHLXrC-6lHXJ6gbnwUKlLEDhuLgJQNOqXaa2eQQ1BOFk0p6g2ofrRgZ8pvwI1HYIY1KUXk6Bj5IwiwAiigDAfVu8s8Vl9AMrH996RRDze4mcL7dSyTekMKAnLTCOBqutwI8MLVi5JnnoZrab7uRj-1EjozkvGeErvy1lwwjiSny-_VCrQW2VuvAvFUaM-MCzGa0)
+
+# Encryption at Rest with Keymaster & Encryption in Transit Using HTTPS  
+
+## Introduction  
+Data security is essential for modern applications. Two important practices include:  
+- **Encryption at Rest:** Protecting stored data from unauthorized access.  
+- **Encryption in Transit:** Securing data as it moves between systems.  
+
+This document explains how to implement encryption at rest using **Keymaster** and encryption in transit using **HTTPS**.
+
+---
+
+## 1. Encryption at Rest Using Keymaster  
+
+### What is Keymaster?  
+Keymaster is a key management system that provides secure storage and handling of cryptographic keys. It simplifies encrypting sensitive data at rest, such as files or database records.
+
+### How It Works  
+- Keys are generated and securely stored within Keymaster.  
+- Applications request encryption keys for encrypting and decrypting data.  
+- The encrypted data is stored in databases or file systems.  
+
+### Implementation Steps  
+1. **Set Up Keymaster:**  
+   - Configure your application to integrate with Keymaster for key retrieval.  
+
+2. **Encrypt Data:**  
+   - Use the retrieved encryption key to encrypt sensitive data before storage.  
+
+3. **Store Encrypted Data:**  
+   - Store the encrypted payload in your database or file system.  
+
+4. **Decrypt Data:**  
+   - When accessing data, retrieve the key and decrypt the data as needed.  
+
+### Best Practices  
+- Rotate encryption keys periodically.  
+- Use separate keys for different data types.  
+- Monitor key access for anomalies.  
+
+---
+
+## 2. Encryption in Transit Using HTTPS  
+
+### What is HTTPS?  
+HTTPS (HyperText Transfer Protocol Secure) encrypts data communication between clients and servers using TLS (Transport Layer Security). This ensures confidentiality and data integrity during transmission.
+
+### How It Works  
+- TLS/SSL certificates encrypt the communication channel.  
+- The client and server perform a handshake to establish a secure connection.  
+- Data exchanged during the session is encrypted.
+
+### Implementation Steps  
+1. **Obtain an SSL/TLS Certificate:**  
+   - Purchase or generate a certificate from a Certificate Authority (CA).  
+   - For development, use tools like Let’s Encrypt for free certificates.  
+
+2. **Configure the Server:**  
+   - Install the certificate and configure the server to use HTTPS.  
+   - Update your web server configuration (`Nginx`, `Apache`, etc.) accordingly.
+
+3. **Redirect Traffic:**  
+   - Force all traffic to use HTTPS by redirecting HTTP to HTTPS.
+
+4. **Client-Side Verification:**  
+   - Ensure your client applications trust the CA and verify the server certificate.
+
+### Best Practices  
+- Use strong ciphers and protocols (TLS 1.2 or higher).  
+- Regularly renew and rotate certificates.  
+- Implement HSTS (HTTP Strict Transport Security).  
+- Monitor for certificate expiration.  
+
+---
+
+## Security Considerations  
+- **Encryption at Rest:** Ensure that Keymaster keys are properly protected and access controlled.  
+- **Encryption in Transit:** Always monitor and test the security configuration of your HTTPS endpoints.  
+- **End-to-End Encryption:** Combine both approaches to secure data comprehensively.  
+
+By using Keymaster for encryption at rest and HTTPS for encryption in transit, your application can achieve a high level of data security while meeting regulatory and industry compliance requirements. 
+
+
+
+
