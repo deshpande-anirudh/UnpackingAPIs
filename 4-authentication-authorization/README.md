@@ -596,3 +596,93 @@ This ensures that only users with the `'business_owner'` role can add, update, o
 - Teams familiar with **AWS services**.
 
 This approach leverages **AWS's robust IAM system** for API authorization, offering powerful access control but with the trade-off of being tightly coupled to the AWS ecosystem.
+
+# JSON Web Tokens (JWT)  
+
+## Introduction  
+JWT (JSON Web Token) is a compact, self-contained token format used for securely transmitting information between parties as a JSON object. The information can be verified and trusted because it is digitally signed.
+
+---
+
+## Structure of a JWT  
+A JWT consists of three parts separated by dots (`.`):
+```
+<Header>.<Payload>.<Signature>
+```
+
+### 1. **Header**  
+Contains metadata about the token, such as the type (`JWT`) and the signing algorithm.
+
+**Example**:
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+### 2. **Payload**  
+Contains claims, which are statements about an entity (typically the user) and additional data.
+
+**Example**:
+```json
+{
+  "sub": "user123",
+  "name": "John Doe",
+  "iat": 1516239022,
+  "exp": 1516246222
+}
+```
+
+### 3. **Signature**  
+Verifies the authenticity of the token and ensures data integrity.
+
+**Generated using**:
+```
+HMACSHA256(
+  base64UrlEncode(header) + "." + base64UrlEncode(payload),
+  secret)
+```
+
+---
+
+## How JWT Works  
+
+1. **User Authentication:**  
+   The client sends credentials to an authorization server for authentication.  
+
+2. **Token Generation:**  
+   If authentication is successful, the server responds with a JWT.  
+
+3. **Token Usage:**  
+   The client includes the JWT in the request headers (`Authorization: Bearer <token>`) to access protected resources.  
+
+4. **Token Validation:**  
+   The server validates the JWT signature and expiration before granting access to the resource.  
+
+---
+
+## Benefits of JWT  
+- **Compact Format:** Ideal for HTTP headers.  
+- **Self-Contained:** Holds all the necessary information for verification.  
+- **Stateless:** No need to store session data on the server.  
+
+---
+
+## Example HTTP Request with JWT  
+```
+GET /protected-resource HTTP/1.1
+Host: api.example.com
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+---
+
+## Security Considerations  
+1. **Use HTTPS:** Always transmit JWTs over secure channels.  
+2. **Short-Lived Tokens:** Use expiration (`exp`) claims.  
+3. **Signature Validation:** Always validate the token's signature.  
+4. **Avoid Storing Sensitive Data:** JWT payload is not encrypted, only encoded.  
+
+---
+
