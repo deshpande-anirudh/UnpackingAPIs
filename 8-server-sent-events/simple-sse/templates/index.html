@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Server-Sent Events Demo</title>
+</head>
+<body>
+    <h1>Server Time Updates</h1>
+    <div id="time"></div>
+
+    <script type="text/javascript">
+        if (typeof(EventSource) !== "undefined") {
+            var source = new EventSource("/stream");
+            source.onmessage = function(event) {
+                document.getElementById("time").innerHTML = "Current server time: " + event.data;
+            };
+        } else {
+            document.getElementById("time").innerHTML = "Sorry, your browser does not support server-sent events...";
+        }
+    </script>
+</body>
+</html>
