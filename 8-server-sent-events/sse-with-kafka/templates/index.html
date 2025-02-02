@@ -1,0 +1,29 @@
+<!-- templates/index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Score Updates</title>
+</head>
+<body>
+    <h1>Live Sports Score Updates</h1>
+    <div id="live_scores"></div>
+
+    <script type="text/javascript">
+        // Set up the EventSource to listen for updates
+        const eventSource = new EventSource("/stream");
+
+        // Update the DOM with the score updates received from the server
+        eventSource.onmessage = function(event) {
+            console.log("Anirudh received the message");
+            const scoreUpdate = event.data;
+            const scoreContainer = document.getElementById('live_scores');
+            const scoreElement = document.createElement('p');
+            scoreElement.textContent = scoreUpdate;
+            scoreContainer.appendChild(scoreElement);
+        };
+    </script>
+</body>
+</html>
