@@ -362,3 +362,134 @@ def stream():
 
 ### **When Not to Use SSE as Part of Consumer Group?**
 If you need a **publish-subscribe fan-out** model (where all users receive the same update simultaneously regardless of partitions), consider using an **intermediate layer** (like Redis Pub/Sub) between Kafka and SSE servers. This avoids Kafka consumer group limitations, where a message is consumed only by one consumer per partition.
+
+-----
+
+# Connection issues and reconnection
+
+SSE (Server-Sent Events) is a technology that allows a server to push real-time updates to a client over a single HTTP connection. Unlike WebSockets, SSE is a one-way communication channel from the server to the client.
+
+### Auto-Reconnect in SSE
+Yes, SSE has built-in support for auto-reconnection. If the connection between the client and server is lost, the client will automatically attempt to reconnect to the server. This behavior is part of the SSE protocol and is handled by the browser or the client library you're using.
+
+### How Auto-Reconnect Works:
+1. **Reconnection Time**: When the server sends an event, it can include a `retry` field in the event stream. This field specifies the time (in milliseconds) the client should wait before attempting to reconnect if the connection is lost. If the server doesn't specify a `retry` value, the client will use a default value (usually a few seconds).
+
+2. **Automatic Retry**: If the connection drops, the client will automatically try to reconnect after the specified `retry` interval.
+
+3. **Handling Reconnection on the Server**: The server should be designed to handle reconnections gracefully. When a client reconnects, the server should be able to resume sending events from where it left off, if necessary.
+
+### Example of SSE with Auto-Reconnect
+Here’s a simple example of how SSE works with auto-reconnect:
+
+#### Server-Side (Node.js/Express Example):
+```javascript
+const express = require('express');
+const app = express();
+
+app.get('/events', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  // Send a retry instruction to the client (e.g., 5000ms)
+  res.write('retry: 5000\n\n');
+
+  // Send events periodically
+  const interval = setInterval(() => {
+    res.write(`data: ${JSON.stringify({ message: 'Hello, world!', timestamp: Date.now() })}\n\n`);
+  }, 1000);
+
+  // Handle client disconnect
+  req.on('close', () => {
+    clearInterval(interval);
+    res.end();
+  });
+});
+
+app.listen(3000, () => {
+  console.log('Server listening on port 3000');
+});
+```
+
+#### Client-Side (JavaScript Example):
+```javascript
+const eventSource = new EventSource('/events');
+
+eventSource.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Received event:', data);
+};
+
+eventSource.onerror = (error) => {
+  console.error('EventSource failed:', error);
+  // The client will automatically attempt to reconnect
+};
+```
+
+### Key Points:
+- **Auto-Reconnect**: The client will automatically attempt to reconnect if the connection is lost.
+- **Retry Interval**: The server can control the reconnection delay using the `retry` field.
+- **Error Handling**: You can handle errors on the client side, but the reconnection process is automatic.
+
+### Limitations:
+- **One-Way Communication**: SSE is designed for server-to-client communication only. If you need two-way communication, consider using WebSockets.
+- **Browser Support**: Most modern browsers support SSE, but always check compatibility if you're targeting older browsers.
+
+## Does it need to reconnect to the same server? 
+
+When an SSE (Server-Sent Events) client reconnects after a connection drop, it will attempt to reconnect to the **same URL** from which it originally established the connection. Whether it connects to the **same server** depends on the infrastructure and how the server-side is configured. Here's a detailed explanation:
+
+---
+
+### 1. **Reconnecting to the Same URL**
+- The SSE client will automatically attempt to reconnect to the **same endpoint** (URL) it was initially connected to.
+- For example, if the client was connected to `https://example.com/events`, it will try to reconnect to the same `https://example.com/events` endpoint.
+
+---
+
+### 2. **Reconnecting to the Same Server**
+- Whether the client reconnects to the **same physical server** depends on your backend infrastructure:
+  - **Single Server Setup**: If your application is running on a single server, the client will reconnect to the same server.
+  - **Load Balancer or Multi-Server Setup**: If your application uses a load balancer or multiple servers behind a single endpoint (e.g., `https://example.com/events`), the client might reconnect to a **different server** in the pool. This is because the load balancer distributes incoming requests across multiple servers.
+
+---
+
+### 3. **Session Persistence**
+- If your application requires the client to reconnect to the **same server** (e.g., for stateful communication), you need to ensure **session persistence** (also called "sticky sessions") on the load balancer.
+  - **Sticky Sessions**: Configure your load balancer to route requests from the same client to the same server based on a session identifier (e.g., a cookie or IP address).
+  - Without sticky sessions, the client might be routed to a different server upon reconnection, which could cause issues if the server maintains client-specific state.
+
+---
+
+### 4. **Stateless Design for Scalability**
+- To avoid issues with reconnecting to different servers, it's often recommended to design your SSE implementation to be **stateless**:
+  - Store any client-specific state in a shared database or cache (e.g., Redis) instead of keeping it in memory on a specific server.
+  - This way, it doesn't matter which server the client reconnects to, as the server can retrieve the necessary state from the shared storage.
+
+---
+
+### 5. **Example Scenario**
+- **Client Connects**: The client connects to `https://example.com/events` and starts receiving events.
+- **Connection Drops**: The connection is lost due to network issues or server downtime.
+- **Reconnection**: The client automatically attempts to reconnect to `https://example.com/events`.
+  - If the infrastructure uses a load balancer, the client might connect to a different server.
+  - If sticky sessions are enabled, the client will reconnect to the same server.
+
+---
+
+### 6. **Handling Reconnection on the Server**
+- When the client reconnects, the server should be able to identify the client (e.g., using a unique ID or session token) and resume sending events from where it left off.
+- Example:
+  - The client sends a unique ID (e.g., in the URL or as a query parameter) when connecting.
+  - The server uses this ID to retrieve the client's state from a shared database or cache.
+
+---
+
+### Summary
+- The SSE client will always reconnect to the **same URL** it was originally connected to.
+- Whether it connects to the **same server** depends on your infrastructure:
+  - Single server: Yes, it will reconnect to the same server.
+  - Load balancer or multi-server setup: It might connect to a different server unless sticky sessions are enabled.
+- To ensure seamless reconnections, design your system to be stateless or use sticky sessions if necessary.
+
