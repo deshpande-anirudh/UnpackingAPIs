@@ -493,3 +493,114 @@ When an SSE (Server-Sent Events) client reconnects after a connection drop, it w
   - Load balancer or multi-server setup: It might connect to a different server unless sticky sessions are enabled.
 - To ensure seamless reconnections, design your system to be stateless or use sticky sessions if necessary.
 
+------
+
+# Reconnect and get list events  
+
+It depends on how the server is designed. By default, **yes**, the client might lose events during a disconnection unless proper mechanisms are implemented.
+
+---
+
+### **How to Prevent Event Loss in SSE**
+1. **Use the `Last-Event-ID` Header**  
+   SSE clients can send a `Last-Event-ID` header when reconnecting. This tells the server which event was the last successfully received by the client. The server can then continue sending events from that point forward.
+
+   **Example Flow:**  
+   - Client receives events with IDs `101, 102, 103...`  
+   - Client disconnects after `103`  
+   - On reconnect, the client sends:  
+     ```http
+     GET /events HTTP/1.1
+     Last-Event-ID: 103
+     ```  
+   - Server resumes sending from event `104`.
+
+2. **Server-Side Event Persistence (Replay Buffer)**  
+   To support resuming, the server needs to **store past events temporarily**. This can be done by:
+   - Using an in-memory cache (e.g., Redis, a ring buffer).  
+   - Storing event streams with timestamps in a database.
+
+3. **Client-Side Polling Fallback**  
+   If events are not persisted on the server, the client can poll for missed events when it reconnects.
+
+---
+
+### **Simple Example of an SSE Server with Event IDs**
+```python
+from flask import Flask, Response
+import time
+
+app = Flask(__name__)
+
+event_id = 0
+event_history = []
+
+@app.route("/events")
+def stream():
+    global event_id
+    last_id = int(request.headers.get("Last-Event-ID", 0))
+
+    # Send any missed events from history
+    def event_generator():
+        for event in event_history[last_id:]:
+            yield f"id: {event['id']}\ndata: {event['data']}\n\n"
+        while True:
+            time.sleep(2)
+            global event_id
+            event_id += 1
+            event_data = {"id": event_id, "data": f"Message {event_id}"}
+            event_history.append(event_data)
+            yield f"id: {event_id}\ndata: {event_data['data']}\n\n"
+
+    return Response(event_generator(), content_type="text/event-stream")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+---
+
+### **Summary**
+If your server:  
+- **Handles `Last-Event-ID` and stores past events:** The client won’t lose events during reconnections.  
+- **Doesn't store events:** The client may miss events during downtime.
+
+Would you like help setting up persistent event storage using Redis or DynamoDB for SSE?
+
+---
+
+### **Scenario: Live Stock Price Updates**  
+Imagine a financial dashboard where clients receive real-time stock price updates via SSE. These updates are critical for traders who need to make informed buy/sell decisions quickly.
+
+#### **What Could Go Wrong?**
+- The user's connection might drop due to network issues or a server restart.
+- The server continues broadcasting stock prices while the user is disconnected.
+- Upon reconnecting, the client has missed several price updates.
+
+---
+
+### **Why Resending is Necessary**
+If the user only sees the most recent stock price after reconnecting but misses the price movements during the disconnection, they lose crucial market insights that could affect trading decisions.
+
+---
+
+### **Solution with Resending**
+1. The SSE server tags each event with a unique `event_id`, such as timestamps or sequence numbers.
+   
+2. On reconnection, the client sends the last received event ID:
+   ```http
+   GET /events HTTP/1.1
+   Last-Event-ID: 1623
+   ```
+   
+3. The server retrieves events from ID `1624` onward from its cache (e.g., Redis or a database) and streams them to the client.
+
+---
+
+### **Why It Matters**
+Resending missed events ensures data consistency and prevents information gaps for business-critical applications. Other use cases include:  
+- **Sports live scores:** Users should see all game updates even after reconnecting.  
+- **IoT sensor data:** Clients need a full timeline of readings.  
+- **Chat applications:** Ensuring no messages are missed during connection interruptions.
+
+Would you like help implementing this for your chat app or other use cases?
